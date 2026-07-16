@@ -16,17 +16,17 @@ identifier and cask token are separate from Netron's:
 
 - App: `Netron Quick Look.app`
 - Cask: `netron-quicklook`
-- Bundle: `io.github.netronquicklook.NetronQuickLook`
-- Extension: `io.github.netronquicklook.NetronQuickLook.QuickLookExtension`
+- Bundle: `io.github.raulsimpetru.NetronQuickLook`
+- Extension: `io.github.raulsimpetru.NetronQuickLook.QuickLookExtension`
 
 The containing app uses `UTImportedTypeDeclarations` and deliberately omits
 `CFBundleDocumentTypes`. It therefore describes supported filename extensions
 for Quick Look without registering itself as the default application for those
 files. Netron and `netron-quicklook` can be installed or removed independently.
 
-Change the provisional bundle identifier in `config.json` to a namespace you
-control before the first public release. Do not change it after users install
-the extension, because macOS treats a new identifier as a different extension.
+The bundle identifier is namespaced to this project's GitHub owner. Do not
+change it after users install the extension, because macOS treats a new
+identifier as a different extension.
 
 ## Build locally
 
@@ -75,7 +75,7 @@ Use a GitHub repository named `homebrew-netron-quicklook`. After its first
 release, users can install the cask directly with:
 
 ```sh
-brew install --cask GITHUB_OWNER/netron-quicklook/netron-quicklook
+brew install --cask RaulSimpetru/netron-quicklook/netron-quicklook
 ```
 
 The fully qualified command installs this cask from your tap and cannot resolve
@@ -111,7 +111,7 @@ certificate in their own protected secrets.
 ## Release
 
 1. Update `package.json` and commit the version.
-2. Tag the same commit, for example `git tag v0.1.0`.
+2. Tag the same commit, for example `git tag vX.Y.Z`.
 3. Push the branch and tag.
 4. Let the release workflow publish the archive and cask.
 
