@@ -69,10 +69,10 @@ compatibility changes, and fails if the pinned source no longer matches:
 Netron's MIT license and the project disclaimer are embedded in both the host
 app and extension. See `THIRD_PARTY_NOTICES.md`.
 
-## Homebrew tap
+## Homebrew tap without Apple credentials
 
 Use a GitHub repository named `homebrew-netron-quicklook`. After its first
-signed release, users can install the cask directly with:
+release, users can install the cask directly with:
 
 ```sh
 brew install --cask GITHUB_OWNER/netron-quicklook/netron-quicklook
@@ -81,10 +81,20 @@ brew install --cask GITHUB_OWNER/netron-quicklook/netron-quicklook
 The fully qualified command installs this cask from your tap and cannot resolve
 to Homebrew's separate `netron` cask.
 
-The release workflow builds a universal app, signs it with Developer ID,
-notarizes and staples it, publishes `NetronQuickLook-VERSION.zip`, calculates
-its SHA-256, and commits `Casks/netron-quicklook.rb` to the default branch.
-Configure these GitHub Actions secrets before pushing a version tag:
+No paid Apple account is required for a personal tap. When no signing secrets
+are configured, the release workflow publishes an ad-hoc-signed universal app,
+calculates its SHA-256, and commits `Casks/netron-quicklook.rb` to the default
+branch. After installing it, users must launch **Netron Quick Look** once. If
+Gatekeeper blocks it, they can approve that specific build with **Open Anyway**
+in System Settings > Privacy & Security. The cask repeats this instruction.
+
+Do not tell users to disable Gatekeeper or strip quarantine attributes. An
+ad-hoc build is appropriate for a personal tap and informed testers, but it is
+not eligible for the official `Homebrew/homebrew-cask` repository.
+
+If Developer ID credentials are added later, the same workflow automatically
+signs, notarizes, and staples releases. All of these GitHub Actions secrets are
+optional and are only needed for that distribution mode:
 
 - `DEVELOPER_ID_APPLICATION`
 - `DEVELOPER_ID_CERTIFICATE_BASE64`
@@ -94,9 +104,9 @@ Configure these GitHub Actions secrets before pushing a version tag:
 - `APPLE_API_KEY_ID`
 - `APPLE_API_ISSUER_ID`
 
-The unsigned pull-request build is only a CI artifact. Public releases should
-always use the signed and notarized release workflow so Gatekeeper and Finder
-can load the extension normally.
+Never copy another developer's certificate into this repository. A future
+release sponsor should run signing in an environment they control and keep the
+certificate in their own protected secrets.
 
 ## Release
 
@@ -105,6 +115,7 @@ can load the extension normally.
 3. Push the branch and tag.
 4. Let the release workflow publish the archive and cask.
 
-The project can later submit the same cask to
-`Homebrew/homebrew-cask`; the independent tap is usable immediately and does
-not require cooperation from Netron's maintainer.
+The independent tap is usable immediately and does not require cooperation
+from Netron's maintainer. Submitting to `Homebrew/homebrew-cask` remains an
+option only after releases pass Gatekeeper and the project meets Homebrew's
+other acceptance criteria.

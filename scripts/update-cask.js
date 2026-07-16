@@ -39,6 +39,12 @@ const content = `cask "netron-quicklook" do
   depends_on macos: ">= :monterey"
 
   app "${config.productName}.app"
+
+  caveats <<~EOS
+    Releases may be ad-hoc signed. After installation, launch "${config.productName}"
+    once. If macOS blocks it, use System Settings > Privacy & Security > Open
+    Anyway. Do not disable Gatekeeper or remove quarantine attributes.
+  EOS
 end
 `;
 const directory = path.join(root, 'Casks');

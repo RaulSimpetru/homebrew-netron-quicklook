@@ -27,6 +27,7 @@ jobs:
           test "$GITHUB_REF_NAME" = "v$VERSION"
 
       - name: Import Developer ID certificate
+        if: env.SIGNING_IDENTITY != ''
         env:
           CERTIFICATE_BASE64: ${{ secrets.DEVELOPER_ID_CERTIFICATE_BASE64 }}
           CERTIFICATE_PASSWORD: ${{ secrets.DEVELOPER_ID_CERTIFICATE_PASSWORD }}
@@ -47,6 +48,7 @@ jobs:
           npm run verify
 
       - name: Notarize and staple
+        if: env.SIGNING_IDENTITY != ''
         env:
           APPLE_API_KEY_BASE64: ${{ secrets.APPLE_API_KEY_BASE64 }}
           APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
@@ -61,6 +63,11 @@ jobs:
           xcrun stapler staple "$APP"
           codesign --verify --deep --strict "$APP"
           spctl --assess --type execute --verbose "$APP"
+
+      - name: Explain ad-hoc release mode
+        if: env.SIGNING_IDENTITY == ''
+        run: |
+          echo "::warning::Publishing an ad-hoc-signed build for the personal tap. Users must approve it once in System Settings > Privacy & Security."
 
       - name: Publish release archive
         id: release
