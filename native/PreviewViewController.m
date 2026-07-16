@@ -2,7 +2,7 @@
 #import <QuickLookUI/QuickLookUI.h>
 #import <WebKit/WebKit.h>
 
-static NSString *const PreviewErrorDomain = @"io.github.netronquicklook.NetronQuickLook.preview";
+static NSString *const PreviewErrorDomain = @"io.github.raulsimpetru.NetronQuickLook.preview";
 static const unsigned long long PreviewMaximumFileSize = 256ULL * 1024ULL * 1024ULL;
 
 typedef NS_ENUM(NSInteger, PreviewErrorCode) {
@@ -34,7 +34,7 @@ typedef NS_ENUM(NSInteger, PreviewErrorCode) {
     self = [super init];
     if (self) {
         _resourceRoot = [[NSBundle bundleForClass:self.class] URLForResource:@"Web" withExtension:nil];
-        _queue = dispatch_queue_create("io.github.netronquicklook.files", DISPATCH_QUEUE_CONCURRENT);
+        _queue = dispatch_queue_create("io.github.raulsimpetru.netron-quicklook.files", DISPATCH_QUEUE_CONCURRENT);
         _activeTasks = [NSMutableSet set];
     }
     return self;
