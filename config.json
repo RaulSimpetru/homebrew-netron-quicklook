@@ -1,0 +1,14 @@
+{
+  "productName": "Netron Quick Look",
+  "executableName": "NetronQuickLook",
+  "extensionExecutableName": "NetronQuickLookExtension",
+  "bundleIdentifier": "io.github.netronquicklook.NetronQuickLook",
+  "typeIdentifier": "io.github.netronquicklook.machine-learning-model",
+  "minimumSystemVersion": "12.0",
+  "maximumPreviewSizeMiB": 256,
+  "netron": {
+    "repository": "https://github.com/lutzroeder/netron.git",
+    "revision": "v9.1.5",
+    "commit": "9bea23730a73a4e76fabb8d88c8f3c6d66c3bde8"
+  }
+}

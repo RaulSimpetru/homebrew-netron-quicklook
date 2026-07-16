@@ -1,0 +1,17 @@
+{
+  "name": "netron-quicklook",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Independent macOS Quick Look extension powered by the Netron renderer",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "node scripts/build.js",
+    "verify": "node scripts/verify.js",
+    "archive": "node scripts/archive.js",
+    "cask": "node scripts/update-cask.js"
+  }
+}
