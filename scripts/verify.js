@@ -52,5 +52,12 @@ assert(entitlements.includes('com.apple.security.app-sandbox'), 'The Quick Look 
 const browser = await fs.readFile(path.join(extension, 'Contents', 'Resources', 'Web', 'browser.js'), 'utf8');
 assert(browser.includes("url.startsWith('netron-quicklook:')"), 'The bundled renderer does not support the private URL scheme.');
 assert(browser.includes("if (!this.environment('quicklook'))"), 'The bundled renderer does not disable telemetry in Quick Look mode.');
+const caskFiles = [path.join(root, 'Casks', 'netron-quicklook.rb'), path.join(root, 'scripts', 'update-cask.js')];
+const caskContents = await Promise.all(caskFiles.map((file) => fs.readFile(file, 'utf8')));
+for (const [index, content] of caskContents.entries()) {
+    const file = caskFiles[index];
+    assert(content.includes('depends_on macos: :monterey'), `${path.basename(file)} does not use the current Homebrew macOS dependency format.`);
+    assert(!/depends_on macos:\s*["']/.test(content), `${path.basename(file)} uses Homebrew's deprecated string comparison format.`);
+}
 await fs.access(path.join(extension, 'Contents', 'Resources', 'Netron-LICENSE.txt'));
 process.stdout.write('verified independent app identity, universal binaries, signatures, renderer patch, and notices\n');
