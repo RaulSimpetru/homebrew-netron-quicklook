@@ -1,6 +1,6 @@
 cask "netron-quicklook" do
-  version "0.1.1"
-  sha256 "709cf535e348ce05ca7dfb1bbe41accbf1530e519767a87dfcdf877f0175da04"
+  version "0.1.2"
+  sha256 "4189b92822ca93e5d61771219026871350bee1634f9cbcf267a87e70e6a6c838"
 
   url "https://github.com/RaulSimpetru/homebrew-netron-quicklook/releases/download/v#{version}/NetronQuickLook-#{version}.zip"
   name "Netron Quick Look"
