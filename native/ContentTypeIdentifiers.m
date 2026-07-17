@@ -17,11 +17,9 @@ int main(int argc, const char *argv[]) {
                     [identifiers addObject:type.identifier];
                 }
             }
-            if (identifiers.count == 0) {
-                UTType *type = [UTType typeWithFilenameExtension:extension];
-                if (type.identifier.length > 0) {
-                    [identifiers addObject:type.identifier];
-                }
+            UTType *preferredType = [UTType typeWithFilenameExtension:extension];
+            if (preferredType.identifier.length > 0 && ![identifiers containsObject:preferredType.identifier]) {
+                [identifiers addObject:preferredType.identifier];
             }
             result[extension] = identifiers;
         }

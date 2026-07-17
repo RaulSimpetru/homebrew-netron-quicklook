@@ -9,6 +9,7 @@ const root = path.resolve(path.dirname(url.fileURLToPath(import.meta.url)), '..'
 const config = JSON.parse(await fs.readFile(path.join(root, 'config.json'), 'utf8'));
 const manifest = JSON.parse(await fs.readFile(path.join(root, 'package.json'), 'utf8'));
 const formats = JSON.parse(await fs.readFile(path.join(root, 'formats.json'), 'utf8'));
+const contentTypeAliases = JSON.parse(await fs.readFile(path.join(root, 'content-type-aliases.json'), 'utf8'));
 const dist = path.join(root, 'dist');
 const app = path.join(dist, `${config.productName}.app`);
 const appContents = path.join(app, 'Contents');
@@ -204,8 +205,17 @@ await fs.cp(upstreamSource, web, {
 await patchBrowser();
 
 await compile(path.join(root, 'native', 'ContentTypeIdentifiers.m'), contentTypeHelper, ['Foundation', 'UniformTypeIdentifiers']);
-const formatIdentifiers = JSON.parse(await run(contentTypeHelper, formats));
+const resolvedFormatIdentifiers = JSON.parse(await run(contentTypeHelper, formats));
 await fs.rm(contentTypeHelper, { force: true });
+for (const [format, identifiers] of Object.entries(contentTypeAliases)) {
+    if (!formats.includes(format) || !Array.isArray(identifiers) || identifiers.length === 0) {
+        throw new Error(`Invalid content-type aliases for .${format}.`);
+    }
+}
+const formatIdentifiers = Object.fromEntries(formats.map((format) => [
+    format,
+    [...new Set([...(resolvedFormatIdentifiers[format] || []), ...(contentTypeAliases[format] || [])])]
+]));
 for (const format of formats) {
     if (!Array.isArray(formatIdentifiers[format]) || formatIdentifiers[format].length === 0) {
         throw new Error(`macOS did not resolve a content type for .${format}.`);

@@ -33,6 +33,11 @@ imported generic model type as a fallback. This lets Quick Look select the
 extension without claiming ownership of Netron's formats or registering another
 model-file opener.
 
+The resolver includes both every matching content type and the system-preferred
+type. This matters when another installed app adds a declaration for the same
+extension—for example, Xcode maps `.pkl` to `public.pkl-source`—and prevents that
+declaration from sending model previews back to Finder's generic text viewer.
+
 The bundle identifier is namespaced to this project's GitHub owner. Do not
 change it after users install the extension, because macOS treats a new
 identifier as a different extension.
@@ -79,6 +84,11 @@ compatibility changes, and fails if the pinned source no longer matches:
 - turn off Netron telemetry, consent, and update prompts in Quick Look;
 - retain Netron's graph inspection, navigation, and view controls;
 - allow model data from the extension's private `netron-quicklook:` URL scheme.
+
+The sandbox includes the network-client capability required for WebKit helper
+processes on current macOS releases. The preview itself remains offline by
+policy: telemetry and update checks are disabled, and native navigation allows
+only the private local scheme and `about:` URLs.
 
 Netron's MIT license and the project disclaimer are embedded in both the host
 app and extension. See `THIRD_PARTY_NOTICES.md`.
