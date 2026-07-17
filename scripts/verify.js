@@ -14,6 +14,7 @@ const appInfo = path.join(app, 'Contents', 'Info.plist');
 const extensionInfo = path.join(extension, 'Contents', 'Info.plist');
 const appExecutable = path.join(app, 'Contents', 'MacOS', config.executableName);
 const extensionExecutable = path.join(extension, 'Contents', 'MacOS', config.extensionExecutableName);
+const contentTypeManifest = path.join(root, 'dist', 'supported-content-types.json');
 
 const run = async (command, args) => (await execFile(command, args)).stdout.trim();
 const assert = (condition, message) => {
@@ -22,6 +23,7 @@ const assert = (condition, message) => {
     }
 };
 const plist = (file, key) => run('plutil', ['-extract', key, 'raw', '-o', '-', file]);
+const plistJSON = (file, key) => run('plutil', ['-extract', key, 'json', '-o', '-', file]).then((value) => JSON.parse(value));
 
 await run('plutil', ['-lint', appInfo, extensionInfo]);
 const appIdentifier = await plist(appInfo, 'CFBundleIdentifier');
@@ -29,6 +31,17 @@ const extensionIdentifier = await plist(extensionInfo, 'CFBundleIdentifier');
 assert(appIdentifier === config.bundleIdentifier, 'The app bundle identifier does not match config.json.');
 assert(extensionIdentifier === `${appIdentifier}.QuickLookExtension`, 'The extension is not namespaced below the containing app.');
 assert(await plist(extensionInfo, 'NSExtension.NSExtensionPointIdentifier') === 'com.apple.quicklook.preview', 'The embedded extension is not a Quick Look preview extension.');
+
+const contentTypes = await plistJSON(extensionInfo, 'NSExtension.NSExtensionAttributes.QLSupportedContentTypes');
+const routing = JSON.parse(await fs.readFile(contentTypeManifest, 'utf8'));
+assert(contentTypes.includes(config.typeIdentifier), 'The Quick Look extension is missing its imported model type.');
+assert(JSON.stringify(contentTypes) === JSON.stringify(routing.supportedContentTypes), 'The Quick Look content types do not match the generated routing manifest.');
+for (const format of formats) {
+    const identifiers = routing.formatIdentifiers[format];
+    assert(Array.isArray(identifiers) && identifiers.length > 0, `Missing resolved content type for .${format}.`);
+    assert(identifiers.some((identifier) => contentTypes.includes(identifier)), `Quick Look cannot route .${format} files to the extension.`);
+}
+assert(routing.formatIdentifiers.pkl.some((identifier) => identifier !== config.typeIdentifier), 'The .pkl regression check did not resolve a routable macOS content type.');
 
 const appPlist = await fs.readFile(appInfo, 'utf8');
 assert(appPlist.includes('<key>UTImportedTypeDeclarations</key>'), 'File types must be imported, not claimed as project-owned exports.');
@@ -52,12 +65,14 @@ assert(entitlements.includes('com.apple.security.app-sandbox'), 'The Quick Look 
 const browser = await fs.readFile(path.join(extension, 'Contents', 'Resources', 'Web', 'browser.js'), 'utf8');
 assert(browser.includes("url.startsWith('netron-quicklook:')"), 'The bundled renderer does not support the private URL scheme.');
 assert(browser.includes("if (!this.environment('quicklook'))"), 'The bundled renderer does not disable telemetry in Quick Look mode.');
+assert(browser.includes("menu: true,\n            quicklook"), 'The bundled renderer does not retain Netron controls in Quick Look mode.');
 const caskFiles = [path.join(root, 'Casks', 'netron-quicklook.rb'), path.join(root, 'scripts', 'update-cask.js')];
 const caskContents = await Promise.all(caskFiles.map((file) => fs.readFile(file, 'utf8')));
 for (const [index, content] of caskContents.entries()) {
     const file = caskFiles[index];
     assert(content.includes('depends_on macos: :monterey'), `${path.basename(file)} does not use the current Homebrew macOS dependency format.`);
     assert(!/depends_on macos:\s*["']/.test(content), `${path.basename(file)} uses Homebrew's deprecated string comparison format.`);
+    assert(content.includes('LaunchServices.framework/Support/lsregister'), `${path.basename(file)} does not register the installed app with Launch Services.`);
 }
 await fs.access(path.join(extension, 'Contents', 'Resources', 'Netron-LICENSE.txt'));
 process.stdout.write('verified independent app identity, universal binaries, signatures, renderer patch, and notices\n');

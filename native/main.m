@@ -20,7 +20,7 @@
     title.font = [NSFont systemFontOfSize:20 weight:NSFontWeightSemibold];
     title.alignment = NSTextAlignmentCenter;
 
-    NSTextField *detail = [NSTextField wrappingLabelWithString:@"Select a supported machine-learning model in Finder and press Space to preview it. This independent extension uses Netron's renderer; it does not replace or modify the Netron app."];
+    NSTextField *detail = [NSTextField wrappingLabelWithString:@"Select a supported machine-learning model in Finder and press Space to open the full interactive Netron graph viewer. This independent extension does not replace or modify the Netron app."];
     detail.alignment = NSTextAlignmentCenter;
     detail.textColor = NSColor.secondaryLabelColor;
     detail.maximumNumberOfLines = 0;

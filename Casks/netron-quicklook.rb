@@ -16,9 +16,18 @@ cask "netron-quicklook" do
 
   app "Netron Quick Look.app"
 
+  postflight do
+    launch_services = "/System/Library/Frameworks/CoreServices.framework" \
+                      "/Frameworks/LaunchServices.framework/Support/lsregister"
+    system_command launch_services,
+                   args:         ["-f", "#{appdir}/Netron Quick Look.app"],
+                   must_succeed: false
+  end
+
   caveats <<~EOS
-    Releases may be ad-hoc signed. After installation, launch "Netron Quick Look"
-    once. If macOS blocks it, use System Settings > Privacy & Security > Open
-    Anyway. Do not disable Gatekeeper or remove quarantine attributes.
+    Launch "Netron Quick Look" once to finish enabling the full interactive
+    Netron preview. Releases may be ad-hoc signed. If macOS blocks the first
+    launch, use System Settings > Privacy & Security > Open Anyway. Do not
+    disable Gatekeeper or remove quarantine attributes.
   EOS
 end
