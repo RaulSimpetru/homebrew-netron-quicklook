@@ -20,6 +20,8 @@ const extensionMacOS = path.join(extensionContents, 'MacOS');
 const extensionResources = path.join(extensionContents, 'Resources');
 const web = path.join(extensionResources, 'Web');
 const moduleCache = path.join(dist, 'ModuleCache');
+const contentTypeHelper = path.join(dist, 'ContentTypeIdentifiers');
+const contentTypeManifest = path.join(dist, 'supported-content-types.json');
 
 if (process.platform !== 'darwin') {
     throw new Error('netron-quicklook can only be built on macOS.');
@@ -99,7 +101,7 @@ const patchBrowser = async () => {
         "            platform: /(Mac|iPhone|iPod|iPad)/i.test(this._navigator.platform) ? 'darwin' : undefined,",
         "            agent: this._navigator.userAgent.toLowerCase().indexOf('safari') !== -1 && this._navigator.userAgent.toLowerCase().indexOf('chrome') === -1 ? 'safari' : '',",
         "            repository: this._element('logo-github').getAttribute('href'),",
-        '            menu: !quicklook,',
+        '            menu: true,',
         '            quicklook',
         '        };'
     ].join('\n');
@@ -201,6 +203,18 @@ await fs.cp(upstreamSource, web, {
 });
 await patchBrowser();
 
+await compile(path.join(root, 'native', 'ContentTypeIdentifiers.m'), contentTypeHelper, ['Foundation', 'UniformTypeIdentifiers']);
+const formatIdentifiers = JSON.parse(await run(contentTypeHelper, formats));
+await fs.rm(contentTypeHelper, { force: true });
+for (const format of formats) {
+    if (!Array.isArray(formatIdentifiers[format]) || formatIdentifiers[format].length === 0) {
+        throw new Error(`macOS did not resolve a content type for .${format}.`);
+    }
+}
+const resolvedContentTypes = [...new Set(Object.values(formatIdentifiers).flat())].sort();
+const supportedContentTypes = [config.typeIdentifier, ...resolvedContentTypes.filter((identifier) => identifier !== config.typeIdentifier)];
+await fs.writeFile(contentTypeManifest, `${JSON.stringify({ formatIdentifiers, supportedContentTypes }, null, 2)}\n`, 'utf8');
+
 const common = {
     PRODUCT_NAME: config.productName,
     VERSION: manifest.version,
@@ -208,6 +222,7 @@ const common = {
     TYPE_IDENTIFIER: config.typeIdentifier
 };
 const fileExtensions = formats.map((format) => `                    <string>${escapeXML(format)}</string>`).join('\n');
+const contentTypes = supportedContentTypes.map((identifier) => `                <string>${escapeXML(identifier)}</string>`).join('\n');
 await renderPlist('App-Info.plist', path.join(appContents, 'Info.plist'), {
     ...common,
     APP_EXECUTABLE: config.executableName,
@@ -217,7 +232,8 @@ await renderPlist('App-Info.plist', path.join(appContents, 'Info.plist'), {
 await renderPlist('Extension-Info.plist', path.join(extensionContents, 'Info.plist'), {
     ...common,
     EXTENSION_EXECUTABLE: config.extensionExecutableName,
-    EXTENSION_BUNDLE_IDENTIFIER: `${config.bundleIdentifier}.QuickLookExtension`
+    EXTENSION_BUNDLE_IDENTIFIER: `${config.bundleIdentifier}.QuickLookExtension`,
+    SUPPORTED_CONTENT_TYPES: { raw: contentTypes }
 });
 
 const notices = path.join(root, 'THIRD_PARTY_NOTICES.md');

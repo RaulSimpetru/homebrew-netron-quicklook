@@ -1,7 +1,9 @@
 # netron-quicklook
 
 `netron-quicklook` is an independent macOS Quick Look preview extension for
-machine-learning model files. It embeds a pinned, lightly patched copy of the
+machine-learning model files. Pressing Space in Finder opens the full
+interactive Netron graph viewer, including graph navigation and inspection. It
+embeds a pinned, lightly patched copy of the
 [Netron](https://github.com/lutzroeder/netron) web renderer.
 
 This project is not maintained, sponsored, or endorsed by the Netron project.
@@ -23,6 +25,13 @@ The containing app uses `UTImportedTypeDeclarations` and deliberately omits
 `CFBundleDocumentTypes`. It therefore describes supported filename extensions
 for Quick Look without registering itself as the default application for those
 files. Netron and `netron-quicklook` can be installed or removed independently.
+
+Finder routes uncommon model extensions such as `.pkl` through dynamically
+generated macOS content-type identifiers. The build resolves and adds those
+identifiers to the extension's `QLSupportedContentTypes` list, while keeping the
+imported generic model type as a fallback. This lets Quick Look select the
+extension without claiming ownership of Netron's formats or registering another
+model-file opener.
 
 The bundle identifier is namespaced to this project's GitHub owner. Do not
 change it after users install the extension, because macOS treats a new
@@ -56,6 +65,11 @@ Local builds are ad-hoc signed. Copy `dist/Netron Quick Look.app` to
 press Space. If macOS disables the extension, use the app's **Open Extensions
 Settings** button.
 
+If Finder still shows its generic binary-file panel, make sure the app has been
+launched and approved once and that **Netron Quick Look** is enabled under the
+system's Quick Look extensions. Close the existing preview before pressing
+Space again.
+
 ## Netron dependency
 
 The renderer is pinned in `config.json`; it is not a fork of the Netron desktop
@@ -63,7 +77,7 @@ application. The build copies only browser assets, applies three guarded
 compatibility changes, and fails if the pinned source no longer matches:
 
 - turn off Netron telemetry, consent, and update prompts in Quick Look;
-- hide application menus in the preview;
+- retain Netron's graph inspection, navigation, and view controls;
 - allow model data from the extension's private `netron-quicklook:` URL scheme.
 
 Netron's MIT license and the project disclaimer are embedded in both the host
@@ -84,9 +98,10 @@ to Homebrew's separate `netron` cask.
 No paid Apple account is required for a personal tap. When no signing secrets
 are configured, the release workflow publishes an ad-hoc-signed universal app,
 calculates its SHA-256, and commits `Casks/netron-quicklook.rb` to the default
-branch. After installing it, users must launch **Netron Quick Look** once. If
-Gatekeeper blocks it, they can approve that specific build with **Open Anyway**
-in System Settings > Privacy & Security. The cask repeats this instruction.
+branch. The cask registers the installed bundle with Launch Services. Users
+must still launch **Netron Quick Look** once; if Gatekeeper blocks it, they can
+approve that specific build with **Open Anyway** in System Settings > Privacy &
+Security. The cask repeats this instruction.
 
 Do not tell users to disable Gatekeeper or strip quarantine attributes. An
 ad-hoc build is appropriate for a personal tap and informed testers, but it is

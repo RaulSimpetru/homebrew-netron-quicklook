@@ -28,7 +28,7 @@
         <dict>
             <key>QLSupportedContentTypes</key>
             <array>
-                <string>__TYPE_IDENTIFIER__</string>
+                <string>__SUPPORTED_CONTENT_TYPES__</string>
             </array>
         </dict>
         <key>NSExtensionPointIdentifier</key>
