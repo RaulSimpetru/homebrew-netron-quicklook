@@ -1,56 +1,90 @@
-# netron-quicklook
+# Netron Quick Look
 
-`netron-quicklook` is an independent macOS Quick Look preview extension for
-machine-learning model files. Pressing Space in Finder opens the full
-interactive Netron graph viewer, including graph navigation and inspection. It
-embeds a pinned, lightly patched copy of the
-[Netron](https://github.com/lutzroeder/netron) web renderer.
+Preview machine-learning models in Finder with Netron's interactive graph
+viewer. Select a supported model, press Space, and navigate or inspect the
+graph without opening another window.
 
-This project is not maintained, sponsored, or endorsed by the Netron project.
-It does not replace `Netron.app`, alter a Netron installation, or modify
-Homebrew's existing `netron` cask.
+This is an independent Quick Look extension. It is not maintained, sponsored,
+or endorsed by the [Netron](https://github.com/lutzroeder/netron) project.
 
-## How coexistence works
+## Install
 
-macOS requires a modern Quick Look extension to live inside a containing app,
-so Homebrew installs a small, independent `Netron Quick Look.app`. Its bundle
-identifier and cask token are separate from Netron's:
+Requires macOS 12 or newer.
 
-- App: `Netron Quick Look.app`
-- Cask: `netron-quicklook`
-- Bundle: `io.github.raulsimpetru.NetronQuickLook`
-- Extension: `io.github.raulsimpetru.NetronQuickLook.QuickLookExtension`
+```sh
+brew install --cask RaulSimpetru/netron-quicklook/netron-quicklook
+```
 
-The containing app uses `UTImportedTypeDeclarations` and deliberately omits
-`CFBundleDocumentTypes`. It therefore describes supported filename extensions
-for Quick Look without registering itself as the default application for those
-files. Netron and `netron-quicklook` can be installed or removed independently.
+Then complete the one-time setup:
 
-Finder routes uncommon model extensions such as `.pkl` through dynamically
-generated macOS content-type identifiers. The build resolves and adds those
-identifiers to the extension's `QLSupportedContentTypes` list, while keeping the
-imported generic model type as a fallback. This lets Quick Look select the
-extension without claiming ownership of Netron's formats or registering another
-model-file opener.
+1. Launch **Netron Quick Look** from Applications.
+2. If macOS blocks it, try launching it first, then choose **Open Anyway** in
+   System Settings > Privacy & Security. If it opens normally, no approval is
+   needed.
+3. If the extension is disabled, click **Open Extensions Settings** in the app
+   and enable **Netron Quick Look** under Quick Look extensions.
 
-The resolver includes both every matching content type and the system-preferred
-type. This matters when another installed app adds a declaration for the same
-extension—for example, Xcode maps `.pkl` to `public.pkl-source`—and prevents that
-declaration from sending model previews back to Finder's generic text viewer.
+Do not disable Gatekeeper or remove quarantine attributes.
 
-The bundle identifier is namespaced to this project's GitHub owner. Do not
-change it after users install the extension, because macOS treats a new
-identifier as a different extension.
+## Use
 
-## Build locally
+Select a [supported model file](formats.json) in Finder and press Space. The
+preview provides Netron's graph navigation, inspection, and view controls.
+Choose **Open with Netron** when you want to continue in the separate Netron
+desktop app.
 
-Requirements:
+Netron itself is optional and is not installed or replaced by this cask.
 
-- macOS 12 or newer
-- Xcode Command Line Tools
-- Node.js 20 or newer
+## Update or uninstall
 
-The normal build fetches the exact Netron tag and verifies its commit:
+```sh
+brew update
+brew upgrade --cask RaulSimpetru/netron-quicklook/netron-quicklook
+```
+
+```sh
+brew uninstall --cask RaulSimpetru/netron-quicklook/netron-quicklook
+```
+
+## Troubleshooting
+
+If Finder shows text, raw bytes, or its generic file panel:
+
+1. Launch **Netron Quick Look** once.
+2. Click **Open Extensions Settings** in the app and confirm that **Netron
+   Quick Look** is enabled.
+3. Close the existing preview and press Space again.
+4. Run the update command above to install the latest build.
+
+If **Open Anyway** is absent, macOS has not blocked a launch. Open the app
+first; no approval is necessary if it starts normally.
+
+If Netron cannot parse the model, the Quick Look extension cannot preview it
+either. Try **Open with Netron** to see the complete error.
+
+## Independence, privacy, and signing
+
+The containing app, extension bundle identifiers, and Homebrew cask are
+separate from Netron. The app deliberately does not register itself as the
+default opener for model files, so it can coexist with `Netron.app` and
+Homebrew's `netron` cask.
+
+The renderer is pinned to a verified Netron release. Telemetry, update checks,
+and consent prompts are disabled, and previews load model data through a local
+private URL scheme. The network-client sandbox entitlement is present only
+because current macOS WebKit helper processes require it.
+
+Releases are ad-hoc signed because this project has no Apple signing
+credentials. This is suitable for a personal Homebrew tap, but users may need
+the one-time Gatekeeper approval described above. The project never uses or
+impersonates Netron's signing identity.
+
+Netron's MIT license and the project disclaimer are included in the app and
+extension. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+
+## Build and release
+
+Local development requires Xcode Command Line Tools and Node.js 20 or newer:
 
 ```sh
 npm run build
@@ -58,89 +92,18 @@ npm run verify
 npm run archive
 ```
 
-During development, an existing Netron checkout at the pinned version can be
-used without downloading it again:
+The build downloads the pinned Netron source and verifies its commit. To reuse
+a matching local checkout:
 
 ```sh
 NETRON_SOURCE_DIR=/path/to/netron npm run build
 ```
 
-Local builds are ad-hoc signed. Copy `dist/Netron Quick Look.app` to
-`/Applications`, launch it once, then select a supported model in Finder and
-press Space. If macOS disables the extension, use the app's **Open Extensions
-Settings** button.
+Copy `dist/Netron Quick Look.app` to `/Applications`, launch it once, and use
+the same activation steps described above.
 
-If Finder still shows its generic binary-file panel, make sure the app has been
-launched and approved once and that **Netron Quick Look** is enabled under the
-system's Quick Look extensions. Close the existing preview before pressing
-Space again.
-
-## Netron dependency
-
-The renderer is pinned in `config.json`; it is not a fork of the Netron desktop
-application. The build copies only browser assets, applies three guarded
-compatibility changes, and fails if the pinned source no longer matches:
-
-- turn off Netron telemetry, consent, and update prompts in Quick Look;
-- retain Netron's graph inspection, navigation, and view controls;
-- allow model data from the extension's private `netron-quicklook:` URL scheme.
-
-The sandbox includes the network-client capability required for WebKit helper
-processes on current macOS releases. The preview itself remains offline by
-policy: telemetry and update checks are disabled, and native navigation allows
-only the private local scheme and `about:` URLs.
-
-Netron's MIT license and the project disclaimer are embedded in both the host
-app and extension. See `THIRD_PARTY_NOTICES.md`.
-
-## Homebrew tap without Apple credentials
-
-Use a GitHub repository named `homebrew-netron-quicklook`. After its first
-release, users can install the cask directly with:
-
-```sh
-brew install --cask RaulSimpetru/netron-quicklook/netron-quicklook
-```
-
-The fully qualified command installs this cask from your tap and cannot resolve
-to Homebrew's separate `netron` cask.
-
-No paid Apple account is required for a personal tap. When no signing secrets
-are configured, the release workflow publishes an ad-hoc-signed universal app,
-calculates its SHA-256, and commits `Casks/netron-quicklook.rb` to the default
-branch. The cask registers the installed bundle with Launch Services. Users
-must still launch **Netron Quick Look** once; if Gatekeeper blocks it, they can
-approve that specific build with **Open Anyway** in System Settings > Privacy &
-Security. The cask repeats this instruction.
-
-Do not tell users to disable Gatekeeper or strip quarantine attributes. An
-ad-hoc build is appropriate for a personal tap and informed testers, but it is
-not eligible for the official `Homebrew/homebrew-cask` repository.
-
-If Developer ID credentials are added later, the same workflow automatically
-signs, notarizes, and staples releases. All of these GitHub Actions secrets are
-optional and are only needed for that distribution mode:
-
-- `DEVELOPER_ID_APPLICATION`
-- `DEVELOPER_ID_CERTIFICATE_BASE64`
-- `DEVELOPER_ID_CERTIFICATE_PASSWORD`
-- `KEYCHAIN_PASSWORD`
-- `APPLE_API_KEY_BASE64`
-- `APPLE_API_KEY_ID`
-- `APPLE_API_ISSUER_ID`
-
-Never copy another developer's certificate into this repository. A future
-release sponsor should run signing in an environment they control and keep the
-certificate in their own protected secrets.
-
-## Release
-
-1. Update `package.json` and commit the version.
-2. Tag the same commit, for example `git tag vX.Y.Z`.
-3. Push the branch and tag.
-4. Let the release workflow publish the archive and cask.
-
-The independent tap is usable immediately and does not require cooperation
-from Netron's maintainer. Submitting to `Homebrew/homebrew-cask` remains an
-option only after releases pass Gatekeeper and the project meets Homebrew's
-other acceptance criteria.
+To publish a release, update the version in `package.json`, commit it, tag that
+commit as `vX.Y.Z`, and push the branch and tag. GitHub Actions builds the
+universal app, publishes the archive, calculates its checksum, and updates
+`Casks/netron-quicklook.rb`. Optional Developer ID and notarization secrets can
+be added later without changing the user workflow.
