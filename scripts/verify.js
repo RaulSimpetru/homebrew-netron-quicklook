@@ -8,6 +8,7 @@ const execFile = util.promisify(childProcess.execFile);
 const root = path.resolve(path.dirname(url.fileURLToPath(import.meta.url)), '..');
 const config = JSON.parse(await fs.readFile(path.join(root, 'config.json'), 'utf8'));
 const formats = JSON.parse(await fs.readFile(path.join(root, 'formats.json'), 'utf8'));
+const contentTypeAliases = JSON.parse(await fs.readFile(path.join(root, 'content-type-aliases.json'), 'utf8'));
 const app = path.join(root, 'dist', `${config.productName}.app`);
 const extension = path.join(app, 'Contents', 'PlugIns', 'NetronQuickLook.appex');
 const appInfo = path.join(app, 'Contents', 'Info.plist');
@@ -41,7 +42,11 @@ for (const format of formats) {
     assert(Array.isArray(identifiers) && identifiers.length > 0, `Missing resolved content type for .${format}.`);
     assert(identifiers.some((identifier) => contentTypes.includes(identifier)), `Quick Look cannot route .${format} files to the extension.`);
 }
+for (const [format, identifiers] of Object.entries(contentTypeAliases)) {
+    assert(identifiers.every((identifier) => routing.formatIdentifiers[format].includes(identifier)), `Missing configured content-type alias for .${format}.`);
+}
 assert(routing.formatIdentifiers.pkl.some((identifier) => identifier !== config.typeIdentifier), 'The .pkl regression check did not resolve a routable macOS content type.');
+assert(routing.formatIdentifiers.pkl.includes('public.pkl-source'), 'The .pkl routing does not cover Xcode\'s public.pkl-source declaration.');
 
 const appPlist = await fs.readFile(appInfo, 'utf8');
 assert(appPlist.includes('<key>UTImportedTypeDeclarations</key>'), 'File types must be imported, not claimed as project-owned exports.');
@@ -61,6 +66,7 @@ for (const [index, value] of binaryArchitectures.entries()) {
 await run('codesign', ['--verify', '--deep', '--strict', app]);
 const entitlements = await run('codesign', ['-d', '--entitlements', ':-', extension]);
 assert(entitlements.includes('com.apple.security.app-sandbox'), 'The Quick Look extension is not sandboxed.');
+assert(entitlements.includes('com.apple.security.network.client'), 'The Quick Look extension cannot launch WebKit networking helpers.');
 
 const browser = await fs.readFile(path.join(extension, 'Contents', 'Resources', 'Web', 'browser.js'), 'utf8');
 assert(browser.includes("url.startsWith('netron-quicklook:')"), 'The bundled renderer does not support the private URL scheme.');
