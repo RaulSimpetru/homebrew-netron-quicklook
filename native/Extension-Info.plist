@@ -22,6 +22,8 @@
     <string>__VERSION__</string>
     <key>LSMinimumSystemVersion</key>
     <string>__MINIMUM_SYSTEM_VERSION__</string>
+    <key>NetronQuickLookMaximumPreviewSizeMiB</key>
+    <integer>__MAXIMUM_PREVIEW_SIZE_MIB__</integer>
     <key>NSExtension</key>
     <dict>
         <key>NSExtensionAttributes</key>

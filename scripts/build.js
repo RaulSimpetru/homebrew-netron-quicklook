@@ -27,6 +27,9 @@ const contentTypeManifest = path.join(dist, 'supported-content-types.json');
 if (process.platform !== 'darwin') {
     throw new Error('netron-quicklook can only be built on macOS.');
 }
+if (!Number.isInteger(config.maximumPreviewSizeMiB) || config.maximumPreviewSizeMiB <= 0) {
+    throw new Error('maximumPreviewSizeMiB must be a positive integer.');
+}
 
 const run = async (command, args, options = {}) => {
     const result = await execFile(command, args, { cwd: root, ...options });
@@ -243,6 +246,7 @@ await renderPlist('Extension-Info.plist', path.join(extensionContents, 'Info.pli
     ...common,
     EXTENSION_EXECUTABLE: config.extensionExecutableName,
     EXTENSION_BUNDLE_IDENTIFIER: `${config.bundleIdentifier}.QuickLookExtension`,
+    MAXIMUM_PREVIEW_SIZE_MIB: config.maximumPreviewSizeMiB.toString(),
     SUPPORTED_CONTENT_TYPES: { raw: contentTypes }
 });
 
