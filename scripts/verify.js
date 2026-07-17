@@ -32,6 +32,7 @@ const extensionIdentifier = await plist(extensionInfo, 'CFBundleIdentifier');
 assert(appIdentifier === config.bundleIdentifier, 'The app bundle identifier does not match config.json.');
 assert(extensionIdentifier === `${appIdentifier}.QuickLookExtension`, 'The extension is not namespaced below the containing app.');
 assert(await plist(extensionInfo, 'NSExtension.NSExtensionPointIdentifier') === 'com.apple.quicklook.preview', 'The embedded extension is not a Quick Look preview extension.');
+assert(Number(await plist(extensionInfo, 'NetronQuickLookMaximumPreviewSizeMiB')) === config.maximumPreviewSizeMiB, 'The compiled preview-size limit does not match config.json.');
 
 const contentTypes = await plistJSON(extensionInfo, 'NSExtension.NSExtensionAttributes.QLSupportedContentTypes');
 const routing = JSON.parse(await fs.readFile(contentTypeManifest, 'utf8'));
@@ -66,12 +67,15 @@ for (const [index, value] of binaryArchitectures.entries()) {
 await run('codesign', ['--verify', '--deep', '--strict', app]);
 const entitlements = await run('codesign', ['-d', '--entitlements', ':-', extension]);
 assert(entitlements.includes('com.apple.security.app-sandbox'), 'The Quick Look extension is not sandboxed.');
+assert(entitlements.includes('com.apple.security.files.user-selected.read-only'), 'The Quick Look extension is missing read-only access to selected model files.');
 assert(entitlements.includes('com.apple.security.network.client'), 'The Quick Look extension cannot launch WebKit networking helpers.');
 
 const browser = await fs.readFile(path.join(extension, 'Contents', 'Resources', 'Web', 'browser.js'), 'utf8');
 assert(browser.includes("url.startsWith('netron-quicklook:')"), 'The bundled renderer does not support the private URL scheme.');
 assert(browser.includes("if (!this.environment('quicklook'))"), 'The bundled renderer does not disable telemetry in Quick Look mode.');
 assert(browser.includes("menu: true,\n            quicklook"), 'The bundled renderer does not retain Netron controls in Quick Look mode.');
+const readme = await fs.readFile(path.join(root, 'README.md'), 'utf8');
+assert(readme.includes(`${config.maximumPreviewSizeMiB} MiB`), 'The README does not document the configured preview-size limit.');
 const caskFiles = [path.join(root, 'Casks', 'netron-quicklook.rb'), path.join(root, 'scripts', 'update-cask.js')];
 const caskContents = await Promise.all(caskFiles.map((file) => fs.readFile(file, 'utf8')));
 for (const [index, content] of caskContents.entries()) {

@@ -3,7 +3,16 @@
 #import <WebKit/WebKit.h>
 
 static NSString *const PreviewErrorDomain = @"io.github.raulsimpetru.NetronQuickLook.preview";
-static const unsigned long long PreviewMaximumFileSize = 256ULL * 1024ULL * 1024ULL;
+
+static unsigned long long PreviewMaximumFileSize(void) {
+    static unsigned long long maximumFileSize = 0;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        NSNumber *maximumSizeMiB = [NSBundle.mainBundle objectForInfoDictionaryKey:@"NetronQuickLookMaximumPreviewSizeMiB"];
+        maximumFileSize = maximumSizeMiB.unsignedLongLongValue * 1024ULL * 1024ULL;
+    });
+    return maximumFileSize;
+}
 
 typedef NS_ENUM(NSInteger, PreviewErrorCode) {
     PreviewErrorInvalidURL = 1,
@@ -70,7 +79,7 @@ typedef NS_ENUM(NSInteger, PreviewErrorCode) {
         NSError *readError = nil;
         NSNumber *fileSize = nil;
         [fileURL getResourceValue:&fileSize forKey:NSURLFileSizeKey error:&readError];
-        if (!readError && fileSize.unsignedLongLongValue > PreviewMaximumFileSize) {
+        if (!readError && fileSize.unsignedLongLongValue > PreviewMaximumFileSize()) {
             readError = [self errorWithCode:PreviewErrorFileTooLarge description:@"This model is too large for a Quick Look preview."];
         }
         NSData *data = readError ? nil : [NSData dataWithContentsOfURL:fileURL options:NSDataReadingMappedIfSafe error:&readError];
@@ -230,7 +239,7 @@ typedef NS_ENUM(NSInteger, PreviewErrorCode) {
         handler(nil);
         return;
     }
-    if (fileSize.unsignedLongLongValue > PreviewMaximumFileSize) {
+    if (fileSize.unsignedLongLongValue > PreviewMaximumFileSize()) {
         NSByteCountFormatter *formatter = [[NSByteCountFormatter alloc] init];
         NSString *size = [formatter stringFromByteCount:fileSize.longLongValue];
         NSString *message = [NSString stringWithFormat:@"This %@ model is too large for a Quick Look preview. Open it in Netron to inspect the graph.", size];

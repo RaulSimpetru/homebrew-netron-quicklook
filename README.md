@@ -45,6 +45,11 @@ brew install --cask netron
 The two casks coexist; `netron-quicklook` does not install, replace, or modify
 Netron.
 
+Quick Look previews models up to 256 MiB. Larger files are not uploaded; open
+them locally in `Netron.app`, which has a file-backed loading path better
+suited to large models. Available memory and model complexity can still limit
+what Netron can render.
+
 ## Update or uninstall
 
 ```sh

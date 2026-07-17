@@ -19,6 +19,7 @@ jobs:
       - run: npm run build
       - run: npm run verify
       - run: npm run archive
+      - run: brew style Casks/netron-quicklook.rb
       - uses: actions/upload-artifact@v4
         with:
           name: NetronQuickLook-unsigned

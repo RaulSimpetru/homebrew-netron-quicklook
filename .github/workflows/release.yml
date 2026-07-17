@@ -46,6 +46,7 @@ jobs:
         run: |
           npm run build
           npm run verify
+          brew style Casks/netron-quicklook.rb
 
       - name: Notarize and staple
         if: env.SIGNING_IDENTITY != ''
@@ -89,6 +90,7 @@ jobs:
           git switch "$DEFAULT_BRANCH"
           git pull --ff-only origin "$DEFAULT_BRANCH"
           node scripts/update-cask.js --repository "$GITHUB_REPOSITORY" --sha256 "$SHA256" --version "$VERSION"
+          brew style Casks/netron-quicklook.rb
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add Casks/netron-quicklook.rb
