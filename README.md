@@ -33,7 +33,17 @@ preview provides Netron's graph navigation, inspection, and view controls.
 Choose **Open with Netron** when you want to continue in the separate Netron
 desktop app.
 
-Netron itself is optional and is not installed or replaced by this cask.
+`Netron.app` is not required for Quick Look previews. Finder's **Open with
+Netron** action does require the official
+[Netron desktop app](https://github.com/lutzroeder/netron#install), which you
+can install separately:
+
+```sh
+brew install --cask netron
+```
+
+The two casks coexist; `netron-quicklook` does not install, replace, or modify
+Netron.
 
 ## Update or uninstall
 
