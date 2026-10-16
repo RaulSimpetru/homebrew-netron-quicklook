@@ -82,7 +82,7 @@ for (const [index, content] of caskContents.entries()) {
     const file = caskFiles[index];
     assert(content.includes('depends_on macos: :monterey'), `${path.basename(file)} does not use the current Homebrew macOS dependency format.`);
     assert(!/depends_on macos:\s*["']/.test(content), `${path.basename(file)} uses Homebrew's deprecated string comparison format.`);
-    assert(content.includes('LaunchServices.framework/Support/lsregister'), `${path.basename(file)} does not register the installed app with Launch Services.`);
+    assert(!/^\s*(uninstall_)?(pre|post)flight do/m.test(content), `${path.basename(file)} uses Homebrew's deprecated flight blocks; use *_steps instead.`);
 }
 await fs.access(path.join(extension, 'Contents', 'Resources', 'Netron-LICENSE.txt'));
 process.stdout.write('verified independent app identity, universal binaries, signatures, renderer patch, and notices\n');
