@@ -85,4 +85,6 @@ for (const [index, content] of caskContents.entries()) {
     assert(!/^\s*(uninstall_)?(pre|post)flight do/m.test(content), `${path.basename(file)} uses Homebrew's deprecated flight blocks; use *_steps instead.`);
 }
 await fs.access(path.join(extension, 'Contents', 'Resources', 'Netron-LICENSE.txt'));
+assert(await plist(appInfo, 'CFBundleIconFile') === 'AppIcon', 'The app does not declare its icon.');
+await fs.access(path.join(app, 'Contents', 'Resources', 'AppIcon.icns'));
 process.stdout.write('verified independent app identity, universal binaries, signatures, renderer patch, and notices\n');

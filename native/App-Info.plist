@@ -8,6 +8,8 @@
     <string>__PRODUCT_NAME__</string>
     <key>CFBundleExecutable</key>
     <string>__APP_EXECUTABLE__</string>
+    <key>CFBundleIconFile</key>
+    <string>AppIcon</string>
     <key>CFBundleIdentifier</key>
     <string>__APP_BUNDLE_IDENTIFIER__</string>
     <key>CFBundleInfoDictionaryVersion</key>

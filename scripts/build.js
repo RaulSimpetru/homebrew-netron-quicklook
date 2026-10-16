@@ -253,6 +253,7 @@ await renderPlist('Extension-Info.plist', path.join(extensionContents, 'Info.pli
 const notices = path.join(root, 'THIRD_PARTY_NOTICES.md');
 const upstreamLicense = path.join(upstream, 'LICENSE');
 await Promise.all([
+    fs.copyFile(path.join(root, 'native', 'AppIcon.icns'), path.join(appResources, 'AppIcon.icns')),
     fs.copyFile(notices, path.join(appResources, 'THIRD_PARTY_NOTICES.txt')),
     fs.copyFile(notices, path.join(extensionResources, 'THIRD_PARTY_NOTICES.txt')),
     fs.copyFile(upstreamLicense, path.join(appResources, 'Netron-LICENSE.txt')),

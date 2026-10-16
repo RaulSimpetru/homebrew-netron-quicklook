@@ -1,6 +1,6 @@
 {
   "name": "netron-quicklook",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "private": true,
   "description": "Independent macOS Quick Look extension powered by the Netron renderer",
   "license": "MIT",
